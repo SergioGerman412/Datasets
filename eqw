@@ -21,3 +21,7 @@ class MediaGastadoPersonaTienda(MRJob):
 
 if __name__ == '__main__':
     MediaGastadoPersonaTienda.run()
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-files MediaGastadoPersonaTienda.py -mapper "python MediaGastadoPersonaTienda.py mapper" \
+-reducer "python MediaGastadoPersonaTienda.py reducer" \
+-input input.txt -output output
