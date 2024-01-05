@@ -1,0 +1,23 @@
+from mrjob.job import MRJob
+from mrjob.step import MRStep
+
+class MediaGastadoPersonaTienda(MRJob):
+
+    def mapper(self, _, line):
+        persona, tienda, gasto = line.split(';')
+        yield f"{persona};{tienda}", (float(gasto), 1)
+
+    def reducer(self, key, values):
+        total_gasto, count = 0, 0
+        for gasto, c in values:
+            total_gasto += gasto
+            count += c
+        yield key, total_gasto / count
+
+    def steps(self):
+        return [
+            MRStep(mapper=self.mapper, reducer=self.reducer)
+        ]
+
+if __name__ == '__main__':
+    MediaGastadoPersonaTienda.run()
