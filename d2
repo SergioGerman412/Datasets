@@ -1,0 +1,32 @@
+from mrjob.job import MRJob
+
+class CitasPatentes(MRJob):
+
+    def mapper(self, _, line):
+        try:
+            if "CITING" not in line:  # Ignorar la primera línea con la cabecera
+                citing, cited = map(int, line.split(','))
+                if cited is not None:  # Ignorar líneas con CITED nulo
+                    yield cited, citing
+        except Exception as e:
+            # Imprimir información detallada sobre la excepción
+            self.increment_counter('Error', 'MapperException', 1)
+            print(f"Error in mapper processing line: {line}")
+            print(f"Error message: {str(e)}")
+
+    def reducer(self, key, values):
+        try:
+            # Convertir el generador a una lista antes de verificar la longitud
+            values_list = list(values)
+            
+            sorted_values = sorted(values_list) if len(values_list) > 1 else values_list
+            # Generar la salida sin comillas directamente
+            yield key, str(' '.join(map(str, sorted_values)))
+        except Exception as e:
+            # Imprimir información detallada sobre la excepción
+            self.increment_counter('Error', 'ReducerException', 1)
+            print(f"Error in reducer processing key: {key}")
+            print(f"Error message: {str(e)}")
+
+if __name__ == '__main__':
+    CitasPatentes.run()
