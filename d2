@@ -20,8 +20,8 @@ class CitasPatentes(MRJob):
             values_list = list(values)
             
             sorted_values = sorted(values_list) if len(values_list) > 1 else values_list
-            # Generar la salida sin comillas directamente
-            yield key, str(' '.join(map(str, sorted_values)))
+            # Generar la salida sin comas y sin espacios en blanco
+            yield key, ','.join(map(str, sorted_values))
         except Exception as e:
             # Imprimir información detallada sobre la excepción
             self.increment_counter('Error', 'ReducerException', 1)
@@ -30,3 +30,4 @@ class CitasPatentes(MRJob):
 
 if __name__ == '__main__':
     CitasPatentes.run()
+
