@@ -6,29 +6,27 @@ class MediaGastadoPersonaTienda(MRJob):
     OUTPUT_PROTOCOL = TextProtocol
 
     def mapper(self, _, line):
-        persona, tienda, gasto = line.split(';')
-        yield f"{persona};{tienda}", (float(gasto), 1)
+        persona, gasto = line.split('\t')
+        yield persona, (float(gasto), 1)
 
-    def reducer(self, key, values):
+    def combiner(self, persona, values):
+        total_gasto, count = 0, 0
+        for gasto, c in values:
+            total_gasto += gasto
+            count += c
+        yield persona, (total_gasto, count)
+
+    def reducer(self, persona, values):
         total_gasto, count = 0, 0
         for gasto, c in values:
             total_gasto += gasto
             count += c
 
-        # Verificar si hay un tabulador en la clave antes de acceder al índice 1
-        if '\t' in key:
-            second_part_of_key = key.split('\t')[1]
-        else:
-            # Si no hay tabulador, usar la clave completa
-            second_part_of_key = key
-
         # Redondear el último valor a un número entero
         rounded_value = round(total_gasto / count)
 
-        # Formatear la salida manualmente en el formato exacto deseado
-        formatted_output = f"{second_part_of_key};{rounded_value}"
-
-        yield None, formatted_output
+        # Convertir a cadena antes de emitir
+        yield persona, str(rounded_value)
 
 if __name__ == '__main__':
     MediaGastadoPersonaTienda.run()
